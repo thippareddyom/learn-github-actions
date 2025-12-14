@@ -1,10 +1,10 @@
 name: example 01
-on: [push]
+on: [workflow_dispatch]
 jobs:
   explore-github-actions:
     runs-on: ubuntu-latest
     steps:
-      - run: echo "${{github.evenet_name}}"
+      - run: echo "${{ github.event_name }}"
   test:
     runs-on: ubuntu-latest
     steps:
