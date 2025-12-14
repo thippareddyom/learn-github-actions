@@ -1,0 +1,47 @@
+AI and git Actions Demo
+=======================
+
+1) Project quick intro
+- Two parts: Flask backend (`ark_list_web_service`) and React/Vite frontend (`ark_list_web_app`).
+- Data sources: public data from ARK/Yahoo, and price/indicator JSONs (`*_stocks_data.json`, `*_etf_data.json`).
+- local LLM (GGUF) for AI ideas; deterministic fallback if model missing/disabled.
+- GitHub Actions for CI/CD.
+
+2) Live flow (what to show)
+- Funds dashboard: shows all ARK funds with YTD gains; click a fund to see holdings snapshot (auto-downloads `<SYMBOL>-holdings.json` if missing).
+- Matrix view: weights of each ticker across funds with sorting; tickers are clickable to open charts.
+- Ticker List: ordered by total weight; selecting a ticker shows chart, 21-day MA, RSI mini-panel, and “Latest snapshot” card (open/high/low/close/MA/RSI/MACD/ATR).
+- AI Recommendation panel: fetches `/ai/bulk-recommendation`, shows top 3 bullish setups in a table; tickers are clickable to jump to chart.
+
+3) AI capability
+- Endpoint: `/ai/bulk-recommendation` returns `recommendation`, `prompt`, and structured `rows`.
+- Local LLM (GGUF in `data/models`) used when present; otherwise deterministic fallback supplies the table/text.
+- Frontend renders the table, links to tickers, and keeps working even if the model is absent.
+
+4) Data handling
+- Funds metadata: `ark-urls.json`.
+- Holdings: `<SYMBOL>-holdings.json` (auto-downloaded on first request if missing).
+- Price history: `*_stocks_data.json` and `*_etf_data.json` include indicators (SMA/RSI/MACD/ATR).
+- Latest row is exposed via `/tickers/<symbol>/history` as `latest` for the report card.
+
+5) CI/CD overview
+- GitHub Actions: `.github/workflows/build.yml` builds frontend + backend and uploads a `dist/` artifact (web + service).
+- `scripts/pack.sh` packages both locally into `dist/` (prunes large model file, writes `requirements.lock.txt`).
+- Deploy: placeholder workflow `deply.yml` can be adapted to sync `dist/` to a server.
+
+6) How to run locally
+- Backend: `cd ark_list_web_service && pip install -r requirements.txt && python app.py` (port 5000).
+- Frontend: `cd ark_list_web_app && npm ci && npm run dev` (port 5173).
+- Build frontend: `npm run build`; packaged under `dist/web`.
+
+7) Talking points (demo script)
+- Start at Funds page, click a fund → holdings table, note auto-download if file missing.
+- Toggle Matrix → show sorting and ticker links.
+- Toggle Ticker List → select a ticker → chart with MA, RSI, latest snapshot card.
+- Show AI Recommendation → table with top tickers, click one → chart updates.
+- Mention fallback behavior when LLM absent and that bulk recs still render.
+
+8) Limitations / caveats
+- Large GGUF models are not in git; place under `data/models/` manually.
+- If indicators are NaN in the latest data, bulk “rows” may be sparse; rerun data download.
+- `deply.yml` is a stub; adapt for your deployment target.
