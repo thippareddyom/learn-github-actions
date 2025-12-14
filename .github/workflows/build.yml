@@ -1,0 +1,72 @@
+name: Build
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    defaults: { run: { shell: bash } }
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+          cache-dependency-path: ark_list_web_app/package-lock.json
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: pip
+
+      - name: Install frontend deps
+        working-directory: ark_list_web_app
+        run: npm ci
+
+      - name: Install backend deps
+        working-directory: ark_list_web_service
+        run: pip install --upgrade pip && pip install -r requirements.txt
+
+      - name: Build frontend
+        working-directory: ark_list_web_app
+        run: npm run build
+
+      - name: Package dist
+        run: |
+          rm -rf dist
+          mkdir -p dist/web dist/service
+          cp -r ark_list_web_app/dist/* dist/web/
+          cp -r ark_list_web_service dist/service
+          rm -f dist/service/data/models/tiny-llm.gguf || true
+          pip freeze > dist/service/requirements.lock.txt
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: build-dist
+          path: dist
+
+  codeql:
+    name: CodeQL
+    runs-on: ubuntu-latest
+    permissions:
+      actions: read
+      contents: read
+      security-events: write
+    strategy:
+      fail-fast: false
+      matrix:
+        language: [ "javascript", "python" ]
+    steps:
+      - uses: actions/checkout@v4
+      - name: Initialize CodeQL
+        uses: github/codeql-action/init@v3
+        with:
+          languages: ${{ matrix.language }}
+      - name: Autobuild
+        uses: github/codeql-action/autobuild@v3
+      - name: Perform CodeQL Analysis
+        uses: github/codeql-action/analyze@v3
