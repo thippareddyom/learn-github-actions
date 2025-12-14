@@ -5,6 +5,7 @@ jobs:
     first-job:
         runs-on: ubuntu-latest
         steps:
-            - run: |
+            - name: print
+              run: |
                 echo "Test"
                 echo "Build"
