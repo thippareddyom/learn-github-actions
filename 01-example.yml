@@ -1,0 +1,11 @@
+name: example 01
+on: [push]
+jobs:
+  explore-github-actions:
+    runs-on: ubuntu-latest
+    steps:
+      - run: echo "${{github.evenet_name}}"
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - run: echo "${{github}}"
