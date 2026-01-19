@@ -7,7 +7,7 @@ jobs:
     build: 
         runs-on: ubuntu-latest
         steps:
-            - uses: actions/checkout@4
+            - uses: actions/checkout@v4
             - name: Run a one line script
               run: echo hello world
             - name: Run a multi line script
