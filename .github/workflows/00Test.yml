@@ -1,8 +1,8 @@
 name: TEST
 on:
     push:
-        branches-ignore:
-            - main
+        branches:
+            - "!main"
     workflow_dispatch:
 jobs:
     build:
